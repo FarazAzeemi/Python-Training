@@ -10,6 +10,18 @@ class AccountHolder(object):
         self.Gender = gender
         self.Age = age
 
+    def printDetails(self):
+        print("Title          : " + self.Title)
+        print("CNIC           :  " + self.CNIC)
+        if self.Gender.upper() == 'M':
+            print("Gender         : MALE")
+        else:
+            print("Gender         : FEMALE")
+        print("Age            :  " + str(self.Age))
+
+    def modifyAccount(self, age):
+        self.Age = age
+
 
 class AccountBalance(object):
     AccBalance = 0.0
@@ -25,6 +37,9 @@ class AccountBalance(object):
 
     def getbalance(self):
         return self.AccBalance
+
+    def printDetails(self):
+        print("Account Balance:  " + str(self.AccBalance))
 
 
 class Account(object):
@@ -49,6 +64,29 @@ class Account(object):
 
     def redcbalance(self, balance):
         self.Account_Balance.redcbalance(balance)
+
+    def printDetails(self):
+        print("Account Number : " + str(self.Account_Number))
+        if self.Account_Type.upper() == 'S':
+            print("Account Type   : SAVING ACCOUNT")
+        else:
+            print("Account Type   : CURRENT ACCOUNT")
+        if self.Active:
+            print("Account Status : ACTIVE")
+        else:
+            print("Account Status : DORMANT/ CLOSED")
+        self.Account_Holder.printDetails()
+        self.Account_Balance.printDetails()
+
+    def closeAccount(self):
+        self.Active == False
+
+    def modifyAccount(self, age, accstatus):
+        if accstatus.upper() == 'A':
+            self.Active = True
+        else:
+            self.Active = False
+        self.Account_Holder.modifyAccount(age)
 
 
 class BMS(object):
@@ -106,6 +144,10 @@ class BMS(object):
         accfound = False
         for acc in accounts:
             if acc.Account_Number == accnumber:
+                if not acc.Active:
+                    print("Account dormant/ closed. Cannot perform operation.")
+                    return
+
                 accfound = True
                 acc.addbalance(amount)
                 print("New balance amount: " + str(acc.Account_Balance.getbalance()))
@@ -129,6 +171,10 @@ class BMS(object):
         accfound = False
         for acc in accounts:
             if acc.Account_Number == accnumber:
+                if not acc.Active:
+                    print("Account dormant/ closed. Cannot perform operation.")
+                    return False
+
                 if amount > acc.Account_Balance.getbalance():
                     print("Amount is greater than available balance: " + str(acc.Account_Balance.getbalance()))
                     return False
@@ -144,16 +190,73 @@ class BMS(object):
         return True
 
     def balanceEnq(self,accounts):
-        accnumber = int(input("Enter Your Account Number :"))
-        for acc in accounts:
-             if acc.Account_Number == accnumber:
-              print("Amount : " + str(acc.Account_Balance.getbalance()))
-              break
+        accnumber = int(input("Enter Account Number :"))
+        if accnumber < 0 or accnumber > 1000:
+            print("Invalid Account Number.")
+            return
 
-    def accountholderlist(self,accounts):
+        accFound = False
+
         for acc in accounts:
-            print("Account Holders:"+str(acc.getaccholder()))
-            break
+            if acc.Account_Number == accnumber:
+                if not acc.Active:
+                    print("Account dormant/ closed. Cannot perform operation.")
+                    return
+
+                acc.Account_Balance.printDetails()
+                accFound = True
+                break
+
+        if not accFound:
+            print("Provided Account not found in database!")
+
+    def accountholderlist(self, accounts):
+        for acc in accounts:
+            acc.printDetails()
+
+    def closeaccount(self, accounts):
+        accnumber = int(input("Enter Your Account Number :"))
+        if accnumber < 0 or accnumber > 1000:
+            print("Invalid Account Number.")
+            return
+
+        accFound = False
+        for acc in accounts:
+            if acc.Account_Number == accnumber:
+                if not acc.Active:
+                    print("Account dormant/ closed. Cannot perform operation.")
+                    return
+
+                accFound = True
+                acc.closeAccount()
+
+        if not accFound:
+            print("Provided Account not found in database!")
+
+    def modifyaccount(self, accounts):
+        accnumber = int(input("Enter Your Account Number :"))
+        if accnumber < 0 or accnumber > 1000:
+            print("Invalid Account Number.")
+            return
+
+        age = int(input("Please enter Account Holder age :"))
+        if age <= 0 and age > 100:
+            print("Invalid value.")
+            return
+
+        status = input("Enter Account Status (A = Active, C = Closed):")
+        if status.upper() != 'A' and status.upper() != 'C':
+            print("Invalid Status.")
+            return
+
+        accFound = False
+        for acc in accounts:
+            if acc.Account_Number == accnumber:
+                accFound = True
+                acc.modifyAccount(age, status)
+
+        if not accFound:
+            print("Provided Account not found in database!")
 
 
     def printmenu(self):
@@ -172,6 +275,7 @@ def main():
     opt = 0
     accounts = []
     bms = BMS()
+
     while opt < 8:
         bms.printmenu()
         opt = int(input("Select Your Option (1-8) "))
@@ -187,9 +291,10 @@ def main():
             bms.balanceEnq(accounts)
         elif opt == 5:
             bms.accountholderlist(accounts)
-
-
-
+        elif opt == 6:
+            bms.closeaccount(accounts)
+        elif opt == 7:
+            bms.modifyaccount(accounts)
 
 
 main()
